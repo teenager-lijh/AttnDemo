@@ -10,16 +10,21 @@ from utils.logger import get_logger
 from utils.model import save_checkpoint
 
 
-def classifier_trainer(net, optimizer, loss_func, num_epochs, dataloader, logger, checkpoint_home, device):
+def classifier_trainer(net, optimizer, loss_func, num_epochs, batch_size, dataset, logger, checkpoint_home, device):
     # 设置网络为训练模式
     net.train()
 
     # 将网络移动到指定的设备上
     net.to(device)
 
+    # 创建数据加载器
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
     # 统计迭代次数
-    max_iterations = dataloader.batch_size * num_epochs
+    max_iterations = (dataset.data_nums // batch_size) * num_epochs
     iter_nums = 1
+
+    logger.info(f'Max Iter:{max_iterations}')
 
     # 开始训练
     for epoch in range(num_epochs):
@@ -66,10 +71,10 @@ def classifier_trainer(net, optimizer, loss_func, num_epochs, dataloader, logger
 
 def train_classifier():
 
-    LR = 0.5e-4
+    LR = 5e-4
     DEVICE = torch.device('cuda:1')
     EPOCHS = 100
-    NUM_CLASSES = 2000
+    NUM_CLASSES = 30
     B, C, H, W = 32, 3, 224, 224
     DATA_DIR ='/home/blueberry/cache/data/image_net_30'
     # CHECKPOINT_HOME = '/home/blueberry/cache/checkpoints/ResNetClassifier'
@@ -89,16 +94,13 @@ def train_classifier():
     # net = ResNetClassifier(block_units=[3, 4, 9, 12], width_factor=1, num_classes=NUM_CLASSES)
     net = ResNetAttnClassifier(block_units=[3, 4, 9, 12], width_factor=1, num_classes=NUM_CLASSES)
 
-    # 创建数据加载器
-    data_loader = DataLoader(image_net_data, batch_size=B, shuffle=True)
-
     # 优化器
     optimizer = SGD(net.parameters(), lr=LR)
 
     # 损失函数
     loss_func = nn.CrossEntropyLoss()
 
-    classifier_trainer(net, optimizer, loss_func, EPOCHS, data_loader, logger, CHECKPOINT_HOME, DEVICE)
+    classifier_trainer(net, optimizer, loss_func, EPOCHS, B, image_net_data, logger, CHECKPOINT_HOME, DEVICE)
 
 if __name__ == '__main__':
     train_classifier()

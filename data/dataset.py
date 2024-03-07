@@ -15,10 +15,10 @@ class ImageNetDataset(Dataset):
         self.images_list = []
         self.mapper = {}
 
-        with open(os.path.join(root_dir, 'mapping.txt'), mode='r') as file:
+        with open(os.path.join(root_dir, 'mapper.txt'), mode='r') as file:
             mapping = file.readlines()
             for line in mapping:
-                label, file_dir = line.strip(' \n').split(' ')
+                file_dir, label, _ = line.strip(' \n').split(' ')
                 self.mapper[file_dir] = label
 
         self.data_dirs = os.listdir(self.data_dir)
@@ -29,7 +29,7 @@ class ImageNetDataset(Dataset):
             self.images_list.extend(files)
 
 
-
+        self.data_nums = len(self.images_list)  # 数据总量
 
     def __len__(self):
         return len(self.images_list)
