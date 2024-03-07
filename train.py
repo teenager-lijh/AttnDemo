@@ -40,9 +40,9 @@ def classifier_trainer(net, optimizer, loss_func, num_epochs, batch_size, datase
 
             # 修改学习率 训练过程中逐渐减小学习率
             lr = None
+            score = (1.0 - iter_nums / max_iterations) ** 0.9
             for param_group in optimizer.param_groups:
-                lr = param_group['lr'] * (1.0 - iter_nums / max_iterations) ** 0.9
-                param_group['lr'] = lr
+                lr = param_group['lr'] * score
 
             # 前向传播
             outputs = net(inputs)
@@ -59,11 +59,13 @@ def classifier_trainer(net, optimizer, loss_func, num_epochs, batch_size, datase
             # 统计损失
             # running_loss += loss.item() * inputs.size(0)
 
-            logger.info(f'Epoch:{epoch+1}, Iter:{iter_nums}, Loss:{float(loss):.4f}, Lr:{float(lr)}')
+            logger.info(f'Epoch:{epoch+1}, Iter:{iter_nums}, Loss:{float(loss):.4f}, Lr:{float(lr)}, score:{score}')
             iter_nums = iter_nums + 1
 
-        logger.info(f'save checkpoint {epoch+1}.pth')
-        save_checkpoint(net, f'{epoch+1}.pth', checkpoint_home)
+        if (epoch+1) % 20 == 0:
+            logger.info(f'save checkpoint {epoch+1}.pth')
+            save_checkpoint(net, f'{epoch+1}.pth', checkpoint_home)
+
         # 输出每个epoch的平均损失
         # epoch_loss = running_loss / len(dataloader.dataset)
         # logger.info(f'Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.4f}')
@@ -71,9 +73,9 @@ def classifier_trainer(net, optimizer, loss_func, num_epochs, batch_size, datase
 
 def train_classifier():
 
-    LR = 5e-4
-    DEVICE = torch.device('cuda:1')
-    EPOCHS = 100
+    LR = 2e-3
+    DEVICE = torch.device('cuda:2')
+    EPOCHS = 500
     NUM_CLASSES = 30
     B, C, H, W = 32, 3, 224, 224
     DATA_DIR ='/home/blueberry/cache/data/image_net_30'
